@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <link
+      rel="stylesheet"
+      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    /> -->
+    <link
+      href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div id="app" style="margin-top: 50px">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 col-sm-6">
+            <label for="itemsTextArea" style="margin-bottom: 8px"
+              >输入 swagger-model 字符串：</label
+            >
+            <textarea
+              id="itemsTextArea"
+              class="form-control"
+              v-model="swaggerText"
+              rows="10"
+              :placeholder="placeholderInput"
+            ></textarea>
+          </div>
+          <div class="col-md-6 col-sm-6">
+            <div class="row">
+              <div class="col-md-6 col-sm-6">
+                <div class="form-group">
+                  <label for="itemPropertyInput" style="margin-bottom: 8px"
+                    >源条目 key 对应到 JSON 对象中的属性名：</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="itemPropertyInput"
+                    v-model="itemKeyProperty"
+                    placeholder="属性名"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6 col-sm-6">
+                <div class="form-group">
+                  <label for="itemPropertyInput" style="margin-bottom: 8px"
+                    >源条目 name 对应到 JSON 对象中的属性名：</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="itemPropertyInput"
+                    v-model="itemNameProperty"
+                    placeholder="属性名"
+                  />
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: 32px">
+              <label>为 JSON 添加除源条目相关的其他属性：</label>
+              <div
+                class="row"
+                v-for="(itemInput,index) in fieldPropertyInputs"
+                :key="index"
+                style="margin-top: 8px"
+              >
+                <div class="col-md-6 col-sm-6">
+                  <span class="form-item">
+                    <input
+                      type="text"
+                      class="form-control"
+                      :id="'fieldPropertyInput_key_'+index"
+                      v-model="itemInput.key"
+                      placeholder="属性名"
+                    />
+                  </span>
+                </div>
+                <div class="col-md-6 col-sm-6">
+                  <span class="form-item">
+                    <input
+                      type="text"
+                      class="form-control"
+                      :id="'fieldPropertyInput_value_'+index"
+                      v-model="itemInput.value"
+                      placeholder="属性默认值"
+                    />
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              style="margin-top: 8px"
+              class="btn btn-primary"
+              v-on:click="addFieldPropertyInputs"
+            >
+              + 属性值
+            </button>
+          </div>
+        </div>
+        <hr />
+        <div class="row">
+          <button class="btn btn-primary" v-on:click="convertToJSON">
+            转换为JSON
+          </button>
+        </div>
+        <hr />
+
+        <label for="outputTextLabel">输出JSON字符串：</label>
+        <textarea
+          id="outputTextLabel"
+          class="form-control"
+          v-model="outputText"
+          rows="10"
+          readonly
+          :placeholder="placeholderOutput"
+        ></textarea>
+      </div>
+    </div>
+  </body>
+  <!-- import Vue before Element -->
+  <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
+  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.13/vue.js"></script>
+  <!-- import JavaScript -->
+  <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
+  <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.4.5/index.js"></script>
+  <script>
+    new Vue({
+      el: "#app",
+      data: function () {
+        return {
+          swaggerText: "",
+          itemKeyProperty: "key",
+          itemNameProperty: "name",
+          fieldPropertyInputs: [{ key: "", value: "" }],
+          outputText: "",
+          placeholderInput: `AmCat(string,optional):你好,
+BeABee(Array[MspAttchReq],optional):我好,
+...`,
+          placeholderOutput: `[
+  {
+    "key": "AmCat",
+    "name": "你好"
+  },
+  {
+    "key": "BeABee",
+    "name": "我好"
+  },
+  ...
+]`,
+        };
+      },
+      methods: {
+        addFieldPropertyInputs() {
+          this.fieldPropertyInputs.push({
+            key: "",
+            value: "",
+          });
+        },
+        convertSwaggerStrToArray() {
+          let splitArray = this.swaggerText
+            .replace(/[\n\s]/g, "")
+            .split(/\([\s\S]*?\):/g)
+            .join()
+            .split(",");
+          // splitArray.pop()
+          console.log(splitArray);
+
+          let keys = splitArray.filter((item, index) => {
+            return index % 2 == 0;
+          });
+
+          let names = splitArray.filter((item, index) => {
+            return index % 2 != 0;
+          });
+
+          console.log(keys);
+          console.log(names);
+          return { keys: keys, names: names };
+        },
+        convertToJSON() {
+          //将输入字符串转换为数组
+          let items = this.swaggerText.split(",").map((item) => item.trim());
+
+          //校验输入是否为空或不足两个条目
+          // if (!this.swaggerText || items.length < 2) {
+          //   alert("请至少输入两个源条目！");
+          //   return;
+          // }
+
+          //校验属性名是否为空
+          // if (!this.itemProperty || !this.fieldPropertyInput) {
+          //   alert("属性名不能为空！");
+          //   return;
+          // }
+
+          //解析其他属性名和格式
+          // let fields = this.fieldPropertyInput
+          //   .split(",")
+          //   .map((field) => field.trim());
+          // let formats = this.formatPropertyInput.split(",");
+
+          //校验其他属性名和默认值数量是否匹配
+          // if (fields.length !== formats.length) {
+          //   alert("其他属性名和默认值数量不匹配！");
+          //   return;
+          // }
+
+          let { keys, names } = this.convertSwaggerStrToArray();
+
+          //生成JSON对象数组
+          let jsonObjects = names.map((itemName, nameIndex) => {
+            let jsonObject = {};
+            let itemKey = keys.find((itemKey, keyIndex) => {
+              return nameIndex == keyIndex;
+            });
+            jsonObject[this.itemKeyProperty] = itemKey;
+            jsonObject[this.itemNameProperty] = itemName;
+            this.fieldPropertyInputs.forEach((field, i) => {
+              if (field.key !== "") {
+                jsonObject[field.key] = field.value;
+              }
+            });
+            return jsonObject;
+          });
+
+          //生成JSON字符串
+          this.outputText = JSON.stringify(jsonObjects, null, 2);
+        },
+      },
+    });
+  </script>
+</html>

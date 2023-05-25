@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- import CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    />
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <label for="itemsTextArea">输入源条目，多个用逗号分隔：</label>
+            <textarea
+              id="itemsTextArea"
+              class="form-control"
+              v-model="itemsText"
+              rows="5"
+              placeholder="输入源条目"
+            ></textarea>
+          </div>
+          <div class="col-md-6">
+            <label for="outputTextLabel">输出JSON字符串：</label>
+            <textarea
+              id="outputTextLabel"
+              class="form-control"
+              v-model="outputText"
+              rows="10"
+              readonly
+            ></textarea>
+          </div>
+        </div>
+        <hr />
+        <div class="form-group">
+          <label for="itemPropertyInput"
+            >源条目对应到JSON对象中的属性名：</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="itemPropertyInput"
+            v-model="itemProperty"
+            placeholder="输入属性名"
+          />
+        </div>
+        <div
+          class="form-group"
+          v-for="(itemInput,index) in fieldPropertyInputs"
+          :key="index"
+        >
+          <label>除源条目相关的其他属性：</label>
+          <span class="form-item">
+            <input
+              type="text"
+              class="form-control"
+              :id="'fieldPropertyInput_key_'+index"
+              v-model="itemInput.key"
+              placeholder="输入其他属性名"
+            />
+          </span>
+          <span class="form-item">
+            <input
+              type="text"
+              class="form-control"
+              :id="'fieldPropertyInput_value_'+index"
+              v-model="itemInput.value"
+              placeholder="输入其他属性默认值"
+            />
+          </span>
+        </div>
+        <button class="btnbtn-primary" v-on:click="addFieldPropertyInputs">
+          添加属性值
+        </button>
+        <button class="btnbtn-primary" v-on:click="convertToJSON">
+          转换为JSON
+        </button>
+      </div>
+    </div>
+  </body>
+  <!-- import Vue before Element -->
+  <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
+  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.13/vue.js"></script>
+  <!-- import JavaScript -->
+  <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
+  <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.4.5/index.js"></script>
+  <script>
+    new Vue({
+      el: "#app",
+      data: function () {
+        return {
+          itemsText: "",
+          itemProperty: "",
+          fieldPropertyInputs: [{ key: "", value: "" }],
+          outputText: "",
+        };
+      },
+      methods: {
+        addFieldPropertyInputs() {
+          this.fieldPropertyInputs.push({
+            key: "",
+            value: "",
+          });
+        },
+        convertToJSON() {
+          //将输入字符串转换为数组
+          let items = this.itemsText.split(",").map((item) => item.trim());
+
+          //校验输入是否为空或不足两个条目
+          if (!this.itemsText || items.length < 2) {
+            alert("请至少输入两个源条目！");
+            return;
+          }
+
+          //校验属性名是否为空
+          // if (!this.itemProperty || !this.fieldPropertyInput) {
+          //   alert("属性名不能为空！");
+          //   return;
+          // }
+
+          //解析其他属性名和格式
+          // let fields = this.fieldPropertyInput
+          //   .split(",")
+          //   .map((field) => field.trim());
+          // let formats = this.formatPropertyInput.split(",");
+
+          //校验其他属性名和默认值数量是否匹配
+          // if (fields.length !== formats.length) {
+          //   alert("其他属性名和默认值数量不匹配！");
+          //   return;
+          // }
+
+          //生成JSON对象数组
+          let jsonObjects = items.map((item, index) => {
+            let jsonObject = {};
+            jsonObject[this.itemProperty] = item;
+            this.fieldPropertyInputs.forEach((field, i) => {
+              jsonObject[field.key] = field.value.replace(/{index}/g, index);
+            });
+            return jsonObject;
+          });
+
+          //生成JSON字符串
+          this.outputText = JSON.stringify(jsonObjects, null, 2);
+        },
+      },
+    });
+  </script>
+</html>
